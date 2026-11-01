@@ -65,6 +65,7 @@ video,canvas{width:100%;max-width:320px;border-radius:14px;background:#000}
 <div class="bar2"><div class="tabs" id="nav"></div><div class="tl"><span id="who2" class="mu"></span><button class="bt y" onclick="chPw()">🔑 تغيير الرمز السري</button><button class="bt rd" onclick="lockApp()">🔒 قفل</button></div></div>
 <main id="v"></main></div></div>
 <div id="sheet"></div><div id="toast" hidden></div>
+<script src="/qaimqamiya-hr-system/face-api.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -151,7 +152,7 @@ function delE(id){if(confirm("حذف الموظف؟")){del("emps",id);go(tab)}}
 // ===== الشاشات =====
 const VIEWS={
 att(){return grid(false)},grd(){return grid(true)},
-emp(){return `<div class="card"><div class="ch"><h2>🪪 العناوين الوظيفية</h2><div class="acts"><button class="bt b" onclick="addEmp(false)">➕ إضافة موظف</button><button class="bt o" onclick="addEmp(true)">➕ إضافة حارس</button></div></div><div class="tw"><table class="gt" style="min-width:600px"><tr><th>#</th><th>الاسم</th><th>العنوان الوظيفي</th><th>النوع</th><th>بصمة وجه</th><th></th></tr>${S.emps.map((e,i)=>`<tr><td>${i+1}</td><td><input value="${esc(e.name)}" onchange="upE('${e.id}','name',this.value)"></td><td><input value="${esc(e.job)}" onchange="upE('${e.id}','job',this.value)"></td><td>${e.guard?"حارس":"موظف"}</td><td>${e.face?"✔":"—"}</td><td><button class="tr" onclick="delE('${e.id}')">🗑</button></td></tr>`).join("")}</table></div></div>`},
+emp(){return `<div class="card"><div class="ch"><h2>🪪 العناوين الوظيفية</h2><div class="acts"><button class="bt b" onclick="addEmp(false)">➕ إضافة موظف</button><button class="bt o" onclick="addEmp(true)">➕ إضافة حارس</button></div></div><div class="tw"><table class="gt" style="min-width:600px"><tr><th>#</th><th>الاسم</th><th>العنوان الوظيفي</th><th>النوع</th><th>بصمة وجه</th><th></th></tr>${S.emps.map((e,i)=>`<tr><td>${i+1}</td><td><input value="${esc(e.name)}" onchange="upE('${e.id}','name',this.value)"></td><td><input value="${esc(e.job)}" onchange="upE('${e.id}','job',this.value)"></td><td>${e.guard?"حارس":"موظف"}</td><td>${e.face2||e.face?"✔":"—"}</td><td><button class="tr" onclick="delE('${e.id}')">🗑</button></td></tr>`).join("")}</table></div></div>`},
 lv(){return `<div class="card"><h2>🏖️ المجازون اليوم</h2>${onLeave()}</div>
 <div class="card"><h2>تسجيل إجازة</h2><div class="row"><select id="le">${empOpts()}</select><select id="lk">${Object.entries(KIND).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select><input id="la" type="number" min="1" value="1" placeholder="العدد (أيام/ساعات)"><input id="ld" type="date" value="${today()}"><select id="ls"><option value="">الموظف البديل (اختياري)</option>${empOpts()}</select></div><button class="bt b" onclick="addL()">حفظ</button><p class="mu">كل 3 ساعات زمنية = يوم، ولكل موظف 4 أيام شهرياً.</p></div>
 <div class="card"><h2>رصيد الإجازة هذا الشهر</h2><div class="tw"><table class="lt"><tr><th>الموظف</th><th>المستهلك</th><th>المتبقي</th><th>رصيد؟</th></tr>${S.emps.map(e=>{const b=bal(e.id);return `<tr><td>${esc(e.name)}</td><td>${used(e.id,today().slice(0,7)).toFixed(1)} يوم</td><td>${b.toFixed(1)} يوم</td><td class="${b>0?"ok":"no"}">${b>0?"نعم ✔":"لا ✖"}</td></tr>`}).join("")||"<tr><td>لا يوجد موظفون</td></tr>"}</table></div></div>
@@ -162,7 +163,7 @@ nt(){return `<div class="card"><h2>إضافة ملاحظة / مطالعة</h2><d
 <div class="card">${bar('nt')}</div>${paperHTML('nt',true)}`},
 face(){return `<div class="card"><h2>تسجيل الحضور ببصمة الوجه</h2><video id="vid" autoplay playsinline muted></video><canvas id="cv" hidden></canvas><div class="row" style="margin-top:10px"><select id="fe">${empOpts()}</select></div>
 <div class="acts"><button class="bt s" onclick="startCam()">📷 تشغيل الكاميرا</button><label class="bt s">📸 التقاط صورة<input id="fi" type="file" accept="image/*" capture="user" hidden onchange="fileSig(this)"></label><button class="bt b" onclick="faceVerify()">✅ تسجيل حضور بالوجه</button><button class="bt o" onclick="faceEnroll()">📸 تسجيل وجه الموظف</button></div><p id="fm" class="mu"></p>
-<p class="mu" style="font-size:12px">ملاحظة: المطابقة هنا تقريبية للتجربة. للإنتاج استخدم face-api.js مع ملفات النماذج داخل المستودع.</p></div>`}};
+<p id="fn" class="mu" style="font-size:12px"></p></div>`}};
 // ===== عمليات =====
 function addL(){if(!$("le").value)return;put("lv",{id:uid(),eid:$("le").value,kind:$("lk").value,amt:+$("la").value||1,date:$("ld").value,sub:$("ls").value==$("le").value?"":$("ls").value});go("lv")}
 function addN(){const t=$("nx").value.trim();if(!t)return;put("notes",{id:uid(),eid:$("ne").value,date:$("nd").value,text:t});go("nt")}
@@ -175,9 +176,19 @@ function fileSig(i){const f=i.files[0];if(!f)return;const im=new Image();im.onlo
 async function startCam(){const m=$("fm");try{if(!navigator.mediaDevices)throw{name:"NoHttps"};stopCam();stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false});const v=$("vid");v.srcObject=stream;v.setAttribute("playsinline","");await v.play();m.textContent="الكاميرا تعمل ✔"}catch(e){stream=null;m.textContent={NotAllowedError:"الكاميرا محجوبة: اسمح بها للموقع من إعدادات المتصفح",NotFoundError:"لا توجد كاميرا في هذا الجهاز",NoHttps:"افتح الموقع عبر https"}[e.name]||"تعذر فتح الكاميرا، استخدم زر التقاط صورة"}}
 function stopCam(){if(stream)stream.getTracks().forEach(t=>t.stop());stream=null}
 function sig(el){const c=$("cv");c.width=c.height=16;const x=c.getContext("2d");x.drawImage(el||$("vid"),0,0,16,16);const d=x.getImageData(0,0,16,16).data,o=[];for(let i=0;i<d.length;i+=4)o.push((d[i]+d[i+1]+d[i+2])/3);const m=o.reduce((a,b)=>a+b)/o.length;return o.map(v=>Math.round(v-m))}
-function faceEnroll(){const e=S.emps.find(x=>x.id==$("fe").value);const el=stream?$("vid"):IMG;if(!e||!el){$("fm").textContent="شغّل الكاميرا أو التقط صورة أولاً";return}e.face=sig(el);put("emps",e);$("fm").textContent="تم تسجيل وجه "+e.name}
-function faceVerify(){const el=stream?$("vid"):IMG;if(!el){$("fm").textContent="شغّل الكاميرا أو التقط صورة أولاً";return}const s=sig(el);let best=null,bd=1e9;S.emps.filter(e=>e.face).forEach(e=>{const d=e.face.reduce((a,v,i)=>a+Math.abs(v-s[i]),0)/256;if(d<bd){bd=d;best=e}});
-if(best&&bd<25){const k=best.id+"_"+today(),o=S.att2.find(x=>x.id==k)||{};put("att2",{id:k,eid:best.id,date:today(),st:"حاضر",in:nowT(),out:o.out||"",note:o.note||""});$("fm").textContent="✅ تم تسجيل حضور "+best.name}else $("fm").textContent="❌ لم يتم التعرف على الوجه"}
+const FACE_BASE="/qaimqamiya-hr-system/models";
+let FM=false,FL=null;
+function loadFace(){const n=()=>$("fn");if(FM){n().textContent="✅ التعرف الحقيقي على الوجه جاهز";return}if(typeof faceapi=="undefined"){n().textContent="⚠️ ملف face-api.min.js غير موجود: يعمل التعرف التقريبي";return}n().textContent="⏳ جارٍ تحميل نماذج التعرف...";
+FL=FL||Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri(FACE_BASE),faceapi.nets.faceLandmark68Net.loadFromUri(FACE_BASE),faceapi.nets.faceRecognitionNet.loadFromUri(FACE_BASE)]);
+FL.then(()=>{FM=true;if(n())n().textContent="✅ التعرف الحقيقي على الوجه جاهز"}).catch(()=>{FL=null;if(n())n().textContent="⚠️ تعذر تحميل النماذج: يعمل التعرف التقريبي"})}
+async function desc(el){if(el.tagName=="VIDEO"&&el.readyState<2)return null;const r=await faceapi.detectSingleFace(el,new faceapi.TinyFaceDetectorOptions({inputSize:320,scoreThreshold:.5})).withFaceLandmarks().withFaceDescriptor();return r?r.descriptor:null}
+async function faceEnroll(){const e=S.emps.find(x=>x.id==$("fe").value),el=stream?$("vid"):IMG,m=$("fm");if(!e||!el){m.textContent="اختر الموظف وشغّل الكاميرا أو التقط صورة أولاً";return}
+if(FM){m.textContent="⏳ جارٍ تحليل الوجه...";const d=await desc(el);if(!d){m.textContent="❌ لم يُكتشف وجه واضح، قرّب الوجه وحسّن الإضاءة";return}e.face2=Array.from(d).map(x=>+x.toFixed(4));put("emps",e);m.textContent="✅ تم تسجيل وجه "+e.name;return}
+e.face=sig(el);put("emps",e);m.textContent="تم تسجيل وجه "+e.name+" (طريقة تقريبية)"}
+async function faceVerify(){const el=stream?$("vid"):IMG,m=$("fm");if(!el){m.textContent="شغّل الكاميرا أو التقط صورة أولاً";return}let best=null,bd=1e9,ok=false;
+if(FM){m.textContent="⏳ جارٍ التعرف...";const d=await desc(el);if(!d){m.textContent="❌ لم يُكتشف وجه واضح";return}S.emps.filter(e=>e.face2).forEach(e=>{const x=faceapi.euclideanDistance(d,e.face2);if(x<bd){bd=x;best=e}});ok=best&&bd<0.5}
+else{const s=sig(el);S.emps.filter(e=>e.face).forEach(e=>{const x=e.face.reduce((a,v,i)=>a+Math.abs(v-s[i]),0)/256;if(x<bd){bd=x;best=e}});ok=best&&bd<25}
+if(ok){const k=best.id+"_"+today(),o=S.att2.find(x=>x.id==k)||{};put("att2",{id:k,eid:best.id,date:today(),st:"حاضر",in:nowT(),out:o.out||"",note:o.note||""});m.textContent="✅ تم تسجيل حضور "+best.name}else m.textContent="❌ لم يتم التعرف على الوجه"}
 // ===== الدخول والتنقل =====
 
 $("roles").innerHTML=ROLES.map((r,i)=>`<label><input type="radio" name="r" value="${r}" ${i?"":"checked"}> ${r}</label>`).join("");
@@ -185,5 +196,5 @@ async function login(){const i=ROLES.indexOf(document.querySelector("input[name=
 try{await firebase.auth().signInWithEmailAndPassword(KEYS[i]+"@hr.local",$("pin").value)}catch(e){$("err").textContent="الرمز غير صحيح أو تعذر الاتصال ("+(e.code||e.message)+")";return}
 ri=i;role=ROLES[i];$("lock").hidden=true;$("app").hidden=false;$("dt").textContent=INFO[i].t;$("dn").textContent=INFO[i].n.join(" / ");$("gen").value=genText();nav();net();go("att")}
 function nav(){$("nav").innerHTML=TABS.map(t=>`<button class="tb ${t[0]==tab?"on":""}" onclick="saveWeek(1);go('${t[0]}')">${t[1]}</button>`).join("")}
-function go(t){tab=t;dirty=false;nav();stopCam();$("v").innerHTML=VIEWS[t]()}
+function go(t){tab=t;dirty=false;nav();stopCam();$("v").innerHTML=VIEWS[t]();if(t=="face")loadFace()}
 </script></body></html>
