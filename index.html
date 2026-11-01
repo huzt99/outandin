@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>دليل الموظف | الحضور والإجازات</title>
+<style>
+:root{color-scheme:dark;--bg1:#0b1026;--bg2:#1b0f3a;--card:rgba(255,255,255,.07);--bd:rgba(255,255,255,.14);--tx:#eef1ff;--mu:#9aa3c7;--a:#7c5cff;--b:#00e0c6;--r:#ff5c7a;--g:#3dff9a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html,body{margin:0}
+body{font-family:Tahoma,"Segoe UI",Arial,sans-serif;background:radial-gradient(circle at 20% 0,#2a1a6e 0,transparent 45%),radial-gradient(circle at 90% 90%,#006b6b55 0,transparent 40%),linear-gradient(135deg,var(--bg1),var(--bg2));color:var(--tx);min-height:100vh}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:16px;backdrop-filter:blur(14px);margin-bottom:14px}
+h1,h2,h3{margin:0 0 10px}h2{font-size:18px}
+.btn{background:linear-gradient(135deg,var(--a),var(--b));color:#fff;border:0;border-radius:12px;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer}
+.btn.s{background:var(--card);border:1px solid var(--bd)}.btn.d{background:var(--r)}
+input,select{background:rgba(0,0,0,.35);border:1px solid var(--bd);color:var(--tx);border-radius:10px;padding:10px;font:inherit;width:100%}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:10px}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;position:sticky;top:0;z-index:5;background:rgba(11,16,38,.8);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd)}
+nav{display:flex;gap:8px;overflow-x:auto;padding:12px 16px}nav button{white-space:nowrap}
+nav .on{outline:2px solid var(--b)}
+main{padding:0 16px 40px;max-width:1000px;margin:auto}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px;border-bottom:1px solid var(--bd);text-align:right;white-space:nowrap}th{color:var(--mu)}
+.ok{color:var(--g);font-weight:700}.no{color:var(--r);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}.stat{text-align:center}.stat b{font-size:30px;display:block;background:linear-gradient(135deg,var(--a),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent}
+#lock{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg1);z-index:99;padding:20px}
+#lock .card{max-width:340px;width:100%;text-align:center}
+video,canvas{width:100%;max-width:320px;border-radius:14px;background:#000}
+.roles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+</style></head><body>
+<div id="lock"><div class="card"><h1>🔐 دليل الموظف</h1><p style="color:var(--mu)">أدخل الرمز للدخول</p>
+<input id="pin" type="password" inputmode="numeric" placeholder="الرمز" style="text-align:center">
+<div class="roles" id="roles"></div>
+<button class="btn" style="width:100%" onclick="login()">دخول</button><p id="err" class="no"></p></div></div>
+<div id="app" hidden>
+<header><b>🏛️ دليل الموظف</b><span><small id="net">💾 محلي</small> <span id="who" class="ok"></span> <button class="btn s" onclick="location.reload()">خروج</button></span></header>
+<nav id="nav"></nav><main id="v"></main></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+// ===== إعدادات مشروعك من Firebase Console =====
+const FIREBASE_CONFIG={apiKey:"AIzaSyCuiPTtkgotBp90q_AEklmjvf8zXk5rSLk",authDomain:"inadnout-f3368.firebaseapp.com",projectId:"inadnout-f3368",storageBucket:"inadnout-f3368.firebasestorage.app",messagingSenderId:"221743078655",appId:"1:221743078655:web:1467b95d3dbe4f2db700ca"};
+firebase.initializeApp(FIREBASE_CONFIG);
+const KEYS=["director","manager","accounting","hr"],ROLES=["مدير الدائرة","مدير الإدارة","مسؤول الحاسبة","مسؤول الموظفين"];
+const TABS=[["dash","📊 الرئيسية"],["emp","👥 الموظفون"],["att","🕒 الحضور"],["grd","💂 الحراس"],["lv","🏖️ الإجازات"],["nt","📝 الملاحظات"],["face","🧑‍💻 بصمة الوجه"]];
+let S={emps:[],att:[],lv:[]},role=ROLES[0],tab="dash";
+try{S=JSON.parse(localStorage.getItem("hrdb"))||S}catch(e){}
+S.notes=S.notes||[];let NF="day",DB=null,seeded={};
+const save=()=>{try{localStorage.setItem("hrdb",JSON.stringify(S))}catch(e){}};
+function put(c,r){r.by=r.by||role;const i=S[c].findIndex(x=>x.id==r.id);i<0?S[c].push(r):S[c][i]=r;save();if(DB)DB.collection(c).doc(String(r.id)).set(r).catch(()=>{})}
+function del(c,id){S[c]=S[c].filter(x=>x.id!=id);save();if(DB)DB.collection(c).doc(String(id)).delete().catch(()=>{})}
+function setNet(o){const n=document.getElementById("net");if(n)n.textContent=o?"🌐 متصل ومشترك":"💾 محلي"}
+async function net(){try{DB=firebase.firestore();
+["emps","att","lv","notes"].forEach(c=>DB.collection(c).onSnapshot(s=>{if(s.empty&&S[c].length&&!seeded[c]){seeded[c]=1;S[c].forEach(r=>DB.collection(c).doc(String(r.id)).set(r).catch(()=>{}));return}seeded[c]=1;S[c]=s.docs.map(d=>d.data());save();setNet(1);const a=document.activeElement;if(!document.getElementById("app").hidden&&tab!="face"&&!(a&&a.matches("input,select")))go(tab)},()=>setNet(0)))}catch(e){}}
+function addN(){const t=$("nx").value.trim();if(!t)return;put("notes",{id:uid(),eid:$("ne").value,date:$("nd").value,text:t});go("nt")}
+const $=i=>document.getElementById(i),uid=()=>Date.now()+Math.random().toString(36).slice(2,6);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const today=()=>new Date().toISOString().slice(0,10),nowT=()=>new Date().toTimeString().slice(0,5);
+const canEdit=()=>true;
+const KIND={daily:"يومية",hourly:"زمنية (ساعات)",sick:"مرضية",annual:"استحقاق سنوية",unpaid:"سنة بدون راتب",seven:"7 أيام"};
+const DAYS={seven:7};
+$("roles").innerHTML=ROLES.map((r,i)=>`<label class="card" style="margin:0;padding:8px"><input type="radio" name="r" value="${r}" ${i?"":"checked"} style="width:auto"> ${r}</label>`).join("");
+async function login(){const i=ROLES.indexOf(document.querySelector("input[name=r]:checked").value);
+try{await firebase.auth().signInWithEmailAndPassword(KEYS[i]+"@hr.local",$("pin").value)}catch(e){$("err").textContent="الرمز غير صحيح أو تعذر الاتصال";return}
+role=ROLES[i];$("lock").hidden=true;$("app").hidden=false;$("who").textContent=role;nav();net();go("dash")}
+function nav(){$("nav").innerHTML=TABS.map(t=>`<button class="btn s ${t[0]==tab?"on":""}" onclick="go('${t[0]}')">${t[1]}</button>`).join("")}
+function go(t){tab=t;nav();stopCam();$("v").innerHTML=VIEWS[t]();if(t=="face")startCam()}
+const ename=id=>(S.emps.find(e=>e.id==id)||{name:"(محذوف)"}).name;
+const empOpts=g=>S.emps.filter(e=>g===undefined||!!e.guard===g).map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join("");
+// رصيد الشهر: 4 أيام، كل 3 ساعات زمنية = يوم
+function used(eid,m){let d=0;S.lv.filter(l=>l.eid==eid&&l.date.slice(0,7)==m&&(l.kind=="daily"||l.kind=="hourly")).forEach(l=>d+=l.kind=="hourly"?l.amt/3:l.amt);return d}
+const bal=(eid,m=today().slice(0,7))=>4-used(eid,m);
+const VIEWS={
+dash(){const t=today(),p=S.att.filter(a=>a.date==t&&a.type=="in").length,ab=S.att.filter(a=>a.date==t&&a.type=="absent").length;
+return `<div class="stats" style="margin-bottom:14px"><div class="card stat"><b>${S.emps.length}</b>الموظفون</div><div class="card stat"><b>${p}</b>حاضرون اليوم</div><div class="card stat"><b>${ab}</b>غائبون اليوم</div><div class="card stat"><b>${S.lv.length}</b>إجازات مسجلة</div></div>
+<div class="card"><h2>رصيد الإجازة هذا الشهر</h2><div class="tw"><table><tr><th>الموظف</th><th>المستهلك</th><th>المتبقي</th><th>رصيد؟</th></tr>${S.emps.map(e=>{const b=bal(e.id);return `<tr><td>${esc(e.name)}</td><td>${used(e.id,today().slice(0,7)).toFixed(1)} يوم</td><td>${b.toFixed(1)} يوم</td><td class="${b>0?"ok":"no"}">${b>0?"نعم ✔":"لا ✖"}</td></tr>`}).join("")||"<tr><td>لا يوجد موظفون</td></tr>"}</table></div></div>`},
+emp(){return `${canEdit()?`<div class="card"><h2>إضافة موظف</h2><div class="row"><input id="n" placeholder="الاسم"><input id="j" placeholder="المسمى الوظيفي"><select id="g"><option value="">موظف</option><option value="1">حارس</option></select></div><button class="btn" onclick="addE()">إضافة</button></div>`:""}
+<div class="card"><h2>دليل الموظفين</h2><div class="tw"><table><tr><th>الاسم</th><th>الوظيفة</th><th>النوع</th><th>بصمة وجه</th><th></th></tr>${S.emps.map(e=>`<tr><td>${esc(e.name)}</td><td>${esc(e.job)}</td><td>${e.guard?"حارس":"موظف"}</td><td>${e.face?"✔":"—"}</td><td>${canEdit()?`<button class="btn d" onclick="delE('${e.id}')">حذف</button>`:""}</td></tr>`).join("")}</table></div></div>`},
+att(){return attView(false)},grd(){return attView(true)},
+lv(){return `${canEdit()?`<div class="card"><h2>تسجيل إجازة</h2><div class="row"><select id="le">${empOpts()}</select><select id="lk">${Object.entries(KIND).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select><input id="la" type="number" min="1" value="1" placeholder="العدد (أيام/ساعات)"><input id="ld" type="date" value="${today()}"></div><button class="btn" onclick="addL()">حفظ</button><p style="color:var(--mu)">كل 3 ساعات زمنية = يوم، ولكل موظف 4 أيام شهرياً.</p></div>`:""}
+<div class="card"><h2>سجل الإجازات</h2><div class="tw"><table><tr><th>التاريخ</th><th>الموظف</th><th>النوع</th><th>المدة</th><th>رصيد الشهر</th><th>بواسطة</th><th></th></tr>${S.lv.slice().reverse().map(l=>{const b=bal(l.eid,l.date.slice(0,7));return `<tr><td>${l.date}</td><td>${esc(ename(l.eid))}</td><td>${KIND[l.kind]}</td><td>${l.kind=="hourly"?l.amt+" ساعة":(DAYS[l.kind]||l.amt)+" يوم"}</td><td class="${b>0?"ok":"no"}">${b>0?"لديه رصيد":"لا رصيد"}</td><td>${esc(l.by||"")}</td><td><button class="btn d" onclick="del('lv','${l.id}');go('lv')">حذف</button></td></tr>`}).join("")}</table></div></div>`},
+nt(){const ds=today(),inR=d=>{if(NF=="all")return true;if(NF=="day")return d==ds;if(NF=="week"){const x=(new Date(ds)-new Date(d))/864e5;return x>=0&&x<7}return d.slice(0,7)==ds.slice(0,7)};
+const L=S.notes.filter(n=>inR(n.date)).sort((a,b)=>b.date.localeCompare(a.date));
+return `<div class="card"><h2>إضافة ملاحظة / مطالعة</h2><div class="row"><select id="ne"><option value="">عامة</option>${empOpts()}</select><input id="nd" type="date" value="${ds}"><input id="nx" placeholder="نص الملاحظة"></div><button class="btn" onclick="addN()">حفظ</button></div>
+<div class="card"><h2>الملاحظات</h2><select onchange="NF=this.value;go('nt')" style="max-width:200px;margin-bottom:10px">${[["day","اليوم"],["week","آخر 7 أيام"],["month","هذا الشهر"],["all","الكل"]].map(o=>`<option value="${o[0]}" ${o[0]==NF?"selected":""}>${o[1]}</option>`).join("")}</select><div class="tw"><table><tr><th>التاريخ</th><th>الخاص بـ</th><th>الملاحظة</th><th>بواسطة</th><th></th></tr>${L.map(n=>`<tr><td>${n.date}</td><td>${n.eid?esc(ename(n.eid)):"عامة"}</td><td style="white-space:normal">${esc(n.text)}</td><td>${esc(n.by||"")}</td><td><button class="btn d" onclick="del('notes','${n.id}');go('nt')">حذف</button></td></tr>`).join("")}</table></div></div>`},
+face(){return `<div class="card"><h2>تسجيل الحضور ببصمة الوجه</h2><video id="vid" autoplay playsinline muted></video><canvas id="cv" hidden></canvas><div class="row" style="margin-top:10px"><select id="fe">${empOpts()}</select></div>
+<button class="btn" onclick="faceVerify()">✅ تسجيل حضور بالوجه</button> <button class="btn s" onclick="faceEnroll()">📸 تسجيل وجه الموظف</button><p id="fm" style="color:var(--mu)"></p>
+<p style="color:var(--mu);font-size:12px">ملاحظة: المطابقة هنا تقريبية للتجربة. للإنتاج استخدم face-api.js مع ملفات النماذج داخل المستودع.</p></div>`}};
+function attView(g){const L=S.att.filter(a=>!!S.emps.find(e=>e.id==a.eid&&!!e.guard==g)).slice().reverse();
+return `${canEdit()?`<div class="card"><h2>${g?"سجل الحراس":"سجل الحضور"}</h2><div class="row"><select id="ae">${empOpts(g)}</select><select id="at"><option value="in">حضور</option><option value="out">انصراف</option><option value="absent">غياب</option></select><input id="ad" type="date" value="${today()}"></div><button class="btn" onclick="addA()">تسجيل</button></div>`:""}
+<div class="card"><div class="tw"><table><tr><th>التاريخ</th><th>الاسم</th><th>الحالة</th><th>الوقت</th><th>بواسطة</th><th></th></tr>${L.map(a=>`<tr><td>${a.date}</td><td>${esc(ename(a.eid))}</td><td class="${a.type=="absent"?"no":"ok"}">${{in:"حضور",out:"انصراف",absent:"غياب"}[a.type]}</td><td>${a.time||"—"}</td><td>${esc(a.by||"")}</td><td><button class="btn d" onclick="del('att','${a.id}');go(tab)">حذف</button></td></tr>`).join("")}</table></div></div>`}
+function addE(){const n=$("n").value.trim();if(!n)return;put("emps",{id:uid(),name:n,job:$("j").value,guard:!!$("g").value});go("emp")}
+function delE(id){if(confirm("حذف الموظف؟")){del("emps",id);go("emp")}}
+function addA(){if(!$("ae").value)return;put("att",{id:uid(),eid:$("ae").value,type:$("at").value,date:$("ad").value,time:nowT()});go(tab)}
+function addL(){if(!$("le").value)return;put("lv",{id:uid(),eid:$("le").value,kind:$("lk").value,amt:+$("la").value||1,date:$("ld").value});go("lv")}
+let stream;
+async function startCam(){try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}});$("vid").srcObject=stream}catch(e){$("fm").textContent="تعذر فتح الكاميرا"}}
+function stopCam(){if(stream)stream.getTracks().forEach(t=>t.stop());stream=null}
+function sig(){const c=$("cv");c.width=c.height=16;const x=c.getContext("2d");x.drawImage($("vid"),0,0,16,16);const d=x.getImageData(0,0,16,16).data,o=[];for(let i=0;i<d.length;i+=4)o.push((d[i]+d[i+1]+d[i+2])/3);const m=o.reduce((a,b)=>a+b)/o.length;return o.map(v=>Math.round(v-m))}
+function faceEnroll(){const e=S.emps.find(x=>x.id==$("fe").value);if(!e||!stream)return;e.face=sig();put("emps",e);$("fm").textContent="تم تسجيل وجه "+e.name}
+function faceVerify(){if(!stream)return;const s=sig();let best=null,bd=1e9;S.emps.filter(e=>e.face).forEach(e=>{const d=e.face.reduce((a,v,i)=>a+Math.abs(v-s[i]),0)/256;if(d<bd){bd=d;best=e}});
+if(best&&bd<25){put("att",{id:uid(),eid:best.id,type:"in",date:today(),time:nowT()});$("fm").textContent="✅ تم تسجيل حضور "+best.name}else $("fm").textContent="❌ لم يتم التعرف على الوجه"}
+</script></body></html>
