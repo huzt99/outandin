@@ -4,7 +4,7 @@
 <title>دليل الموظف | الحضور والإجازات</title>
 <style>
 :root{color-scheme:dark;--bg1:#0b1026;--bg2:#1b0f3a;--card:rgba(255,255,255,.07);--bd:rgba(255,255,255,.14);--tx:#eef1ff;--mu:#9aa3c7;--a:#7c5cff;--b:#00e0c6;--r:#ff5c7a;--g:#3dff9a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-*{box-sizing:border-box}html,body{margin:0}
+*{box-sizing:border-box}[hidden]{display:none!important}html,body{margin:0}
 body{font-family:Tahoma,"Segoe UI",Arial,sans-serif;background:radial-gradient(circle at 20% 0,#2a1a6e 0,transparent 45%),radial-gradient(circle at 90% 90%,#006b6b55 0,transparent 40%),linear-gradient(135deg,var(--bg1),var(--bg2));color:var(--tx);min-height:100vh}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:16px;backdrop-filter:blur(14px);margin-bottom:14px}
 h1,h2,h3{margin:0 0 10px}h2{font-size:18px}
@@ -58,7 +58,7 @@ const KIND={daily:"يومية",hourly:"زمنية (ساعات)",sick:"مرضية
 const DAYS={seven:7};
 $("roles").innerHTML=ROLES.map((r,i)=>`<label class="card" style="margin:0;padding:8px"><input type="radio" name="r" value="${r}" ${i?"":"checked"} style="width:auto"> ${r}</label>`).join("");
 async function login(){const i=ROLES.indexOf(document.querySelector("input[name=r]:checked").value);
-try{await firebase.auth().signInWithEmailAndPassword(KEYS[i]+"@hr.local",$("pin").value)}catch(e){$("err").textContent="الرمز غير صحيح أو تعذر الاتصال";return}
+try{await firebase.auth().signInWithEmailAndPassword(KEYS[i]+"@hr.local",$("pin").value)}catch(e){$("err").textContent="الرمز غير صحيح أو تعذر الاتصال ("+(e.code||e.message)+")";return}
 role=ROLES[i];$("lock").hidden=true;$("app").hidden=false;$("who").textContent=role;nav();net();go("dash")}
 function nav(){$("nav").innerHTML=TABS.map(t=>`<button class="btn s ${t[0]==tab?"on":""}" onclick="go('${t[0]}')">${t[1]}</button>`).join("")}
 function go(t){tab=t;nav();stopCam();$("v").innerHTML=VIEWS[t]();if(t=="face")startCam()}
