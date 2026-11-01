@@ -52,6 +52,27 @@ video,canvas{width:100%;max-width:320px;border-radius:14px;background:#000}
 @media(max-width:700px){.dtabs{display:flex}table.gt{min-width:0}.dc{display:none}.dc.sel{display:table-cell}.nm,.nmh{min-width:105px;max-width:135px;font-size:15px}.wrap{padding:8px}}
 @media(max-width:800px){.hd{grid-template-columns:1fr}.hd h1{font-size:26px}}
 @media print{@page{size:A4;margin:12mm}html,body{background:#fff!important}body>*:not(#sheet){display:none!important}#sheet{display:block!important}#sheet .paper{box-shadow:none;max-width:none;padding:0;margin:0}.paper th{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+body{background:linear-gradient(160deg,#ede9fe 0,#e0f2fe 45%,#fce7f3 100%) fixed;color:#0f172a;font-size:16px}
+.hd{background:linear-gradient(120deg,#0891b2,#6d28d9 55%,#db2777);box-shadow:0 12px 30px #6d28d955}.hd p{color:#fef9c3;font-weight:600}
+.gold{background:linear-gradient(135deg,#fde047,#fb923c);color:#1c1002;box-shadow:0 6px 16px #f9731655}.gold b{font-size:22px}
+.gn{color:#6d28d9;box-shadow:0 4px 12px #0003}.gn input{color:#0f172a;font-weight:600}
+.info{background:#cffafe;border-color:#22d3ee;color:#164e63;font-weight:700}
+.tb{border:2px solid #ddd6fe;color:#3b0764;font-weight:700}.tb.on{background:linear-gradient(135deg,#7c3aed,#db2777);color:#fff;border-color:transparent}
+.bt.b{background:linear-gradient(135deg,#0ea5e9,#6366f1)}.bt.gr{background:linear-gradient(135deg,#10b981,#059669)}.bt.o{border-color:#7c3aed;color:#6d28d9;background:#faf5ff}.bt.y{border-color:#f59e0b;color:#92400e;background:#fffbeb}.bt.rd{border-color:#e11d48;color:#e11d48;background:#fff1f2}.bt.d{background:linear-gradient(135deg,#f43f5e,#e11d48)}.bt.s{border-color:#a78bfa;color:#4c1d95;background:#f5f3ff}.bt.bell{border-color:#db2777;color:#be185d;background:#fdf2f8}
+#bc{background:#e11d48;color:#fff;border-radius:999px;padding:1px 7px;font-size:12px}
+.card{border:1px solid #ddd6fe;border-top:4px solid #8b5cf6;box-shadow:0 6px 18px #6d28d91a}h2{color:#5b21b6}
+.sel select{border-color:#7c3aed;color:#4c1d95}input,select{border:2px solid #c4b5fd;color:#0f172a;font-weight:600}input::placeholder{color:#64748b;font-weight:400}
+table.gt th{background:#ede9fe;color:#3b0764;border-color:#c4b5fd}table.gt td{border-color:#ddd6fe}.nmh{background:#ede9fe}td.nm{color:#1e1b4b}
+.hol{background:#fff7ed;border-color:#fed7aa}.hc{border-color:#e11d48;color:#be123c;font-weight:700}.hc.on{color:#fff}
+.dtb.on{background:linear-gradient(135deg,#7c3aed,#db2777);border-color:transparent}
+table.lt th{background:#ede9fe;color:#3b0764}table.lt td{border-color:#ddd6fe;color:#0f172a}
+.cok select{background:#d1fae5;color:#064e3b}.cab select{background:#fecaca;color:#7f1d1d}.clv select{background:#fde68a;color:#78350f}
+.ok{color:#047857}.no{color:#be123c}.chip{background:#faf5ff;border-color:#c4b5fd;color:#3b0764}
+#lock{background:linear-gradient(135deg,#0891b2,#6d28d9 55%,#db2777)}#lock h1{color:#5b21b6}.roles label{border:2px solid #ddd6fe;font-weight:700;color:#3b0764}
+#toast{background:linear-gradient(135deg,#7c3aed,#db2777);max-width:92vw;text-align:center}
+#np{position:fixed;inset:0;background:#0008;z-index:150;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow:auto}.npc{background:#fff;border-radius:16px;padding:16px;max-width:520px;width:100%}
+.ni{display:flex;gap:10px;padding:10px;border-bottom:1px solid #ede9fe;font-size:15px}.ni b{display:block;color:#3b0764}.ni small{color:#64748b}
 </style></head><body>
 <div id="lock"><div class="card"><div style="font-size:44px">🏛️</div><h1>قائمقامية قضاء السماوة</h1><p class="mu">نظام الحضور والإجازات — أدخل الرمز للدخول</p>
 <input id="pin" type="password" inputmode="numeric" placeholder="الرمز" style="text-align:center">
@@ -60,10 +81,11 @@ video,canvas{width:100%;max-width:320px;border-radius:14px;background:#000}
 <div id="app" hidden><div class="wrap">
 <div class="hd"><div><h1>قائمقامية قضاء السماوة</h1><p>نظام إدارة الحضور والغياب والإجازات الموحد</p></div>
 <div><div class="gold"><small id="dt">مدير الدائرة</small><br><b id="dn"></b></div>
-<div class="gn">📌 ملاحظات: <input id="gen" placeholder="أدخل الملاحظات العامة للمسؤولين هنا..." onchange="put('meta',{id:'gen',text:this.value})"></div></div></div>
+<div class="gn">📌 ملاحظات: <input id="gen" placeholder="أدخل الملاحظات العامة للمسؤولين هنا..." onchange="saveGen(this.value)"></div></div></div>
 <div class="info">ℹ️ ملاحظة // أي إضافة أو تعديل تظهر كما هي معدلة لمدير الدائرة. <span id="net">💾 محلي</span></div>
-<div class="bar2"><div class="tabs" id="nav"></div><div class="tl"><span id="who2" class="mu"></span><button class="bt y" onclick="chPw()">🔑 تغيير الرمز السري</button><button class="bt rd" onclick="lockApp()">🔒 قفل</button></div></div>
+<div class="bar2"><div class="tabs" id="nav"></div><div class="tl"><span id="who2" class="mu"></span><button class="bt bell" onclick="openN()">🔔 <b id="bc" hidden>0</b></button><button class="bt y" onclick="chPw()">🔑 تغيير الرمز السري</button><button class="bt rd" onclick="lockApp()">🔒 قفل</button></div></div>
 <main id="v"></main></div></div>
+<div id="np" hidden><div class="npc"><div class="ch"><h2>🔔 الإشعارات</h2><button class="bt s" onclick="$('np').hidden=true">✖ إغلاق</button></div><button class="bt b" onclick="askNotif()" style="margin-bottom:10px">📲 تفعيل إشعارات الجهاز</button><div id="nl"></div></div></div>
 <div id="sheet"></div><div id="toast" hidden></div>
 <script src="/qaimqamiya-hr-system/face-api.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -77,19 +99,20 @@ const INFO=[{t:"مدير الدائرة",n:["الحقوقي عدي قاسم مح
 const TABS=[["att","1. الحضور والانصراف"],["lv","2. سجل الإجازات المطور"],["emp","3. العناوين الوظيفية"],["grd","4. حضور الحراس"],["mov","5. سجل الحركات"],["nt","6. الملاحظات"],["face","7. بصمة الوجه"]];
 const COLS=["emps","att2","lv","notes","mov","hol","meta"];
 let S={},role=ROLES[0],tab="att",DB=null,seeded={},dirty=false,stream,IMG=null;
-COLS.forEach(c=>S[c]=[]);
+COLS.forEach(c=>S[c]=[]);S.notif=[];
 try{const L=JSON.parse(localStorage.getItem("hrdb2"));if(L)COLS.forEach(c=>{if(Array.isArray(L[c]))S[c]=L[c]})}catch(e){}
 const $=i=>document.getElementById(i),uid=()=>Date.now()+Math.random().toString(36).slice(2,6);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10),nowT=()=>new Date().toTimeString().slice(0,5);
 const save=()=>{try{localStorage.setItem("hrdb2",JSON.stringify(S))}catch(e){}};
-function toast(t){const d=$("toast");d.textContent=t;d.hidden=false;setTimeout(()=>d.hidden=true,2200)}
+function toast(t,ms){const d=$("toast");d.textContent=t;d.hidden=false;clearTimeout(window._tt);window._tt=setTimeout(()=>d.hidden=true,ms||2200)}
 function put(c,r){r.by=role;const i=S[c].findIndex(x=>x.id==r.id);i<0?S[c].push(r):S[c][i]=r;save();if(DB)DB.collection(c).doc(String(r.id)).set(r).catch(()=>{})}
 function del(c,id){S[c]=S[c].filter(x=>x.id!=id);save();if(DB)DB.collection(c).doc(String(id)).delete().catch(()=>{})}
 const genText=()=>(S.meta.find(x=>x.id=="gen")||{}).text||"";
 function setNet(o){$("net").textContent=o?"🌐 متصل ومشترك":"💾 محلي"}
 async function net(){try{DB=firebase.firestore();
-COLS.forEach(c=>DB.collection(c).onSnapshot(s=>{if(s.empty&&S[c].length&&!seeded[c]){seeded[c]=1;S[c].forEach(r=>DB.collection(c).doc(String(r.id)).set(r).catch(()=>{}));return}seeded[c]=1;S[c]=s.docs.map(d=>d.data());save();setNet(1);const g=$("gen");if(g&&document.activeElement!=g)g.value=genText();const a=document.activeElement;if(!$("app").hidden&&tab!="face"&&!(dirty&&(tab=="att"||tab=="grd"))&&!(a&&a.matches("input,select")))go(tab)},()=>setNet(0)))}catch(e){}}
+COLS.forEach(c=>DB.collection(c).onSnapshot(s=>{if(s.empty&&S[c].length&&!seeded[c]){seeded[c]=1;S[c].forEach(r=>DB.collection(c).doc(String(r.id)).set(r).catch(()=>{}));return}seeded[c]=1;S[c]=s.docs.map(d=>d.data());save();setNet(1);const g=$("gen");if(g&&document.activeElement!=g)g.value=genText();const a=document.activeElement;if(!$("app").hidden&&tab!="face"&&!(dirty&&(tab=="att"||tab=="grd"))&&!(a&&a.matches("input,select")))go(tab)},()=>setNet(0)));
+DB.collection("notif").onSnapshot(sn=>{sn.docChanges().forEach(ch=>{if(ch.type!="added")return;const n=ch.doc.data();if(n.ts<Date.now()-12096e5){ch.doc.ref.delete().catch(()=>{});return}if(S.notif.some(x=>x.id==n.id))return;S.notif.push(n);if(n.ts>T_LOGIN&&n.cid!=CID)popN(n)});S.notif.sort((a,b)=>b.ts-a.ts);S.notif=S.notif.slice(0,100);upBell()})}catch(e){}}
 // ===== أدوات التاريخ =====
 const D=(y,m,d)=>new Date(Date.UTC(y,m,d)),iso=x=>x.toISOString().slice(0,10);
 const addD=(d,n)=>{const x=new Date(d+"T00:00:00Z");x.setUTCDate(x.getUTCDate()+n);return iso(x)};
@@ -127,12 +150,12 @@ $("sheet").innerHTML=`<style>@media print{@page{size:A4 landscape;margin:10mm}}<
 const HH=Array.from({length:24},(_,h)=>h),MM=Array.from({length:60},(_,m)=>m),p2=n=>String(n).padStart(2,"0");
 function tp(id,f,val,dis){const[h,m]=(val||"").split(":");return `<span class="tp"><select data-t="${id}|${f}|h" ${dis}><option value="">--</option>${HH.map(x=>`<option value="${p2(x)}" ${h==p2(x)?"selected":""}>${p2(x%12||12)} ${x<12?"ص":"م"}</option>`).join("")}</select><b>:</b><select data-t="${id}|${f}|m" ${dis}>${MM.map(x=>`<option value="${p2(x)}" ${(m||"00")==p2(x)?"selected":""}>${p2(x)}</option>`).join("")}</select></span>`}
 function cell(e,d,i){const id=e.id+"_"+d,r=S.att2.find(x=>x.id==id)||{},h=isHol(d),lv=lvOn(e.id,d),st=h?"عطلة رسمية":(r.st||(lv?"إجازة":"حاضر")),dis=h?"disabled":"";
-return `<td class="dc ${i==V.d?"sel":""} ${st=="غائب"?"cab":st=="إجازة"||h?"clv":""}" data-d="${i}"><select data-k="${id}" data-f="st" ${dis}>${["حاضر","غائب","إجازة","مهمة رسمية"].map(o=>`<option ${o==st?"selected":""}>${o}</option>`).join("")}${h?"<option selected>عطلة رسمية</option>":""}</select>${lv&&lv.sub?`<small class="sb">البديل: ${esc(ename(lv.sub))}</small>`:""}<div class="tl2"><small>حضور</small>${tp(id,"in",r.in,dis)}</div><div class="tl2"><small>انصراف</small>${tp(id,"out",r.out,dis)}</div><input data-k="${id}" data-f="note" placeholder="تصحيح/ملاحظة..." value="${esc(r.note||"")}" ${dis}></td>`}
+return `<td class="dc ${i==V.d?"sel":""} ${st=="غائب"?"cab":st=="إجازة"||h?"clv":st=="حاضر"?"cok":""}" data-d="${i}"><select data-k="${id}" data-f="st" ${dis}>${["حاضر","غائب","إجازة","مهمة رسمية"].map(o=>`<option ${o==st?"selected":""}>${o}</option>`).join("")}${h?"<option selected>عطلة رسمية</option>":""}</select>${lv&&lv.sub?`<small class="sb">البديل: ${esc(ename(lv.sub))}</small>`:""}<div class="tl2"><small>حضور</small>${tp(id,"in",r.in,dis)}</div><div class="tl2"><small>انصراف</small>${tp(id,"out",r.out,dis)}</div><input data-k="${id}" data-f="note" placeholder="تصحيح/ملاحظة..." value="${esc(r.note||"")}" ${dis}></td>`}
 function saveWeek(q){const m={};document.querySelectorAll("[data-k]").forEach(el=>{if(el.disabled)return;(m[el.dataset.k]=m[el.dataset.k]||{})[el.dataset.f]=el.value});
 const T={};document.querySelectorAll("[data-t]").forEach(el=>{if(el.disabled)return;const[k,f,p]=el.dataset.t.split("|"),z=k+"|"+f;(T[z]=T[z]||{k,f})[p]=el.value});
 Object.values(T).forEach(o=>{(m[o.k]=m[o.k]||{})[o.f]=o.h?o.h+":"+(o.m||"00"):""});let n=0;
 for(const k in m){const[eid,d]=k.split("_"),o=S.att2.find(x=>x.id==k)||{},v=m[k],def=lvOn(eid,d)?"إجازة":"حاضر";
-if(v.st!=(o.st||def)||(v.in||"")!=(o.in||"")||(v.out||"")!=(o.out||"")||(v.note||"")!=(o.note||"")){put("att2",{id:k,eid,date:d,st:v.st,in:v.in||"",out:v.out||"",note:v.note||""});n++}}
+if(v.st!=(o.st||def)||(v.in||"")!=(o.in||"")||(v.out||"")!=(o.out||"")||(v.note||"")!=(o.note||"")){if(v.st=="غائب"&&(o.st||def)!="غائب")notify("absent","تم تسجيل غياب الموظف "+ename(eid)+" يوم "+d);if(v.out&&v.out!=(o.out||""))notify("out","انصراف الموظف "+ename(eid)+" الساعة "+v.out+" ("+d+")");put("att2",{id:k,eid,date:d,st:v.st,in:v.in||"",out:v.out||"",note:v.note||""});n++}}
 dirty=false;if(!q)toast(n?"تم حفظ "+n+" تعديل ✔":"لا توجد تعديلات جديدة")}
 function selDay(i){V.d=i;document.querySelectorAll(".dc").forEach(el=>el.classList.toggle("sel",el.dataset.d==i));document.querySelectorAll(".dtb").forEach((el,j)=>el.classList.toggle("on",j==i))}
 function togH(d){saveWeek(1);isHol(d)?del("hol",d):put("hol",{id:d});go(tab)}
@@ -165,10 +188,10 @@ face(){return `<div class="card"><h2>تسجيل الحضور ببصمة الوج
 <div class="acts"><button class="bt s" onclick="startCam()">📷 تشغيل الكاميرا</button><label class="bt s">📸 التقاط صورة<input id="fi" type="file" accept="image/*" capture="user" hidden onchange="fileSig(this)"></label><button class="bt b" onclick="faceVerify()">✅ تسجيل حضور بالوجه</button><button class="bt o" onclick="faceEnroll()">📸 تسجيل وجه الموظف</button></div><p id="fm" class="mu"></p>
 <p id="fn" class="mu" style="font-size:12px"></p></div>`}};
 // ===== عمليات =====
-function addL(){if(!$("le").value)return;put("lv",{id:uid(),eid:$("le").value,kind:$("lk").value,amt:+$("la").value||1,date:$("ld").value,sub:$("ls").value==$("le").value?"":$("ls").value});go("lv")}
-function addN(){const t=$("nx").value.trim();if(!t)return;put("notes",{id:uid(),eid:$("ne").value,date:$("nd").value,text:t});go("nt")}
-function addM(){const c=$("mc").value.trim();if(!c)return;const mem=[...document.querySelectorAll("input[name=mm]:checked")].map(x=>x.value).join("، ");put("mov",{id:uid(),date:$("md").value,com:c,place:$("mp").value,task:$("mt").value,out:$("mo").value,back:$("mb").value,mem});go("mov")}
-function retM(id){const m=S.mov.find(x=>x.id==id);if(m){m.back=nowT();put("mov",m);go("mov")}}
+function addL(){if(!$("le").value)return;const r={id:uid(),eid:$("le").value,kind:$("lk").value,amt:+$("la").value||1,date:$("ld").value,sub:$("ls").value==$("le").value?"":$("ls").value};put("lv",r);notify("leave","تم تسجيل إجازة "+KIND[r.kind]+" للموظف "+ename(r.eid)+" ابتداءً من "+r.date+(r.sub?" والبديل: "+ename(r.sub):""));go("lv")}
+function addN(){const t=$("nx").value.trim();if(!t)return;put("notes",{id:uid(),eid:$("ne").value,date:$("nd").value,text:t});notify("note","ملاحظة جديدة من "+INFO[ri].t+": "+t.slice(0,80));go("nt")}
+function addM(){const c=$("mc").value.trim();if(!c)return;const mem=[...document.querySelectorAll("input[name=mm]:checked")].map(x=>x.value).join("، ");put("mov",{id:uid(),date:$("md").value,com:c,place:$("mp").value,task:$("mt").value,out:$("mo").value,back:$("mb").value,mem});notify("move","خروج لجنة «"+c+"» ("+(mem||"بدون أعضاء")+") إلى "+($("mp").value||"—")+" الساعة "+($("mo").value||nowT()));go("mov")}
+function retM(id){const m=S.mov.find(x=>x.id==id);if(m){m.back=nowT();put("mov",m);notify("move","عودة لجنة «"+m.com+"» الساعة "+m.back);go("mov")}}
 async function chPw(){const p=prompt("اكتب الرمز السري الجديد (6 أحرف/أرقام على الأقل)");if(!p)return;if(p.length<6){alert("الرمز قصير: 6 على الأقل");return}try{await firebase.auth().currentUser.updatePassword(p);toast("تم تغيير الرمز ✔")}catch(e){alert("تعذر التغيير ("+(e.code||e.message)+"). اخرج وادخل من جديد ثم أعد المحاولة")}}
 function lockApp(){firebase.auth().signOut().finally(()=>location.reload())}
 // ===== الكاميرا =====
@@ -189,12 +212,21 @@ async function faceVerify(){const el=stream?$("vid"):IMG,m=$("fm");if(!el){m.tex
 if(FM){m.textContent="⏳ جارٍ التعرف...";const d=await desc(el);if(!d){m.textContent="❌ لم يُكتشف وجه واضح";return}S.emps.filter(e=>e.face2).forEach(e=>{const x=faceapi.euclideanDistance(d,e.face2);if(x<bd){bd=x;best=e}});ok=best&&bd<0.5}
 else{const s=sig(el);S.emps.filter(e=>e.face).forEach(e=>{const x=e.face.reduce((a,v,i)=>a+Math.abs(v-s[i]),0)/256;if(x<bd){bd=x;best=e}});ok=best&&bd<25}
 if(ok){const k=best.id+"_"+today(),o=S.att2.find(x=>x.id==k)||{};put("att2",{id:k,eid:best.id,date:today(),st:"حاضر",in:nowT(),out:o.out||"",note:o.note||""});m.textContent="✅ تم تسجيل حضور "+best.name}else m.textContent="❌ لم يتم التعرف على الوجه"}
+// ===== الإشعارات =====
+const CID=uid();let T_LOGIN=0,NSEEN=0;const NI={absent:"🚫",out:"🚪",move:"🚗",leave:"🏖️",note:"📝"};
+function notify(type,text){if(!DB)return;const r={id:uid(),ts:Date.now(),type,text,cid:CID,by:role,who:INFO[ri].n.join(" / ")};DB.collection("notif").doc(r.id).set(r).catch(()=>{})}
+function beep(){try{const c=new(window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.value=.08;o.start();o.stop(c.currentTime+.25)}catch(e){}}
+function popN(n){toast((NI[n.type]||"🔔")+" "+n.text+" — "+n.by,6000);beep();if("Notification" in window&&Notification.permission=="granted"){try{new Notification("قائمقامية قضاء السماوة",{body:n.text+" — "+n.by,tag:n.id})}catch(e){}}upBell()}
+function upBell(){const b=$("bc");if(!b)return;const c=S.notif.filter(n=>n.ts>NSEEN&&n.cid!=CID).length;b.hidden=!c;b.textContent=c}
+function openN(){NSEEN=Date.now();try{localStorage.setItem("nseen",NSEEN)}catch(e){}upBell();$("nl").innerHTML=S.notif.slice(0,50).map(n=>`<div class="ni"><span>${NI[n.type]||"🔔"}</span><div><b>${esc(n.text)}</b><small>${esc(n.by||"")} — ${esc(n.who||"")} · ${new Date(n.ts).toLocaleString("ar")}</small></div></div>`).join("")||`<p class="mu">لا توجد إشعارات بعد</p>`;$("np").hidden=false}
+function askNotif(){if(!("Notification" in window)){toast("هذا المتصفح لا يدعم إشعارات الجهاز");return}Notification.requestPermission().then(p=>toast(p=="granted"?"تم تفعيل إشعارات الجهاز ✔":"لم يتم السماح بالإشعارات"))}
+function saveGen(v){put("meta",{id:"gen",text:v});if(v.trim())notify("note",`ملاحظة عامة جديدة من ${INFO[ri].t}: ${v.slice(0,80)}`)}
 // ===== الدخول والتنقل =====
 
 $("roles").innerHTML=ROLES.map((r,i)=>`<label><input type="radio" name="r" value="${r}" ${i?"":"checked"}> ${r}</label>`).join("");
 async function login(){const i=ROLES.indexOf(document.querySelector("input[name=r]:checked").value);
 try{await firebase.auth().signInWithEmailAndPassword(KEYS[i]+"@hr.local",$("pin").value)}catch(e){$("err").textContent="الرمز غير صحيح أو تعذر الاتصال ("+(e.code||e.message)+")";return}
-ri=i;role=ROLES[i];$("lock").hidden=true;$("app").hidden=false;$("dt").textContent=INFO[i].t;$("dn").textContent=INFO[i].n.join(" / ");$("gen").value=genText();nav();net();go("att")}
+ri=i;role=ROLES[i];T_LOGIN=Date.now();NSEEN=+localStorage.getItem("nseen")||T_LOGIN;$("lock").hidden=true;$("app").hidden=false;$("dt").textContent=INFO[i].t;$("dn").textContent=INFO[i].n.join(" / ");$("gen").value=genText();nav();net();go("att")}
 function nav(){$("nav").innerHTML=TABS.map(t=>`<button class="tb ${t[0]==tab?"on":""}" onclick="saveWeek(1);go('${t[0]}')">${t[1]}</button>`).join("")}
 function go(t){tab=t;dirty=false;nav();stopCam();$("v").innerHTML=VIEWS[t]();if(t=="face")loadFace()}
 </script></body></html>
