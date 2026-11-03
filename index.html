@@ -219,4 +219,47 @@ face(){return `<div class="card"><h2>تسجيل الحضور ببصمة الوج
 function addL(){if(!$("le").value)return;const r={id:uid(),eid:$("le").value,kind:$("lk").value,amt:+$("la").value||1,date:$("ld").value,sub:$("ls").value==$("le").value?"":$("ls").value};put("lv",r);notify("leave","تم تسجيل إجازة "+KIND[r.kind]+" للموظف "+ename(r.eid)+" ابتداءً من "+r.date+(r.sub?" والبديل: "+ename(r.sub):""));go("lv")}
 function addN(){const t=$("nx").value.trim();if(!t)return;put("notes",{id:uid(),eid:$("ne").value,date:$("nd").value,text:t});notify("note","ملاحظة جديدة من "+INFO[ri].t+": "+t.slice(0,80));go("nt")}
 function addM(){const c=$("mc").value.trim();if(!c)return;const mem=[...document.querySelectorAll("input[name=mm]:checked")].map(x=>x.value).join("، ");put("mov",{id:uid(),date:$("md").value,com:c,place:$("mp").value,task:$("mt").value,out:$("mo").value,back:$("mb").value,mem});notify("move","خروج لجنة «"+c+"» ("+(mem||"بدون أعضاء")+") إلى "+($("mp").value||"—")+" الساعة "+($("mo").value||nowT()));go("mov")}
-function retM(id){const m=S.mov.find(x=>x.id==id);if
+function retM(id){const m=S.mov.find(x=>x.id==id);if(m){m.back=nowT();put("mov",m);notify("move","عودة لجنة «"+m.com+"» الساعة "+m.back);go("mov")}}
+async function chPw(){const p=prompt("اكتب الرمز السري الجديد (6 أحرف/أرقام على الأقل)");if(!p)return;if(p.length<6){alert("الرمز قصير: 6 على الأقل");return}try{await firebase.auth().currentUser.updatePassword(p);toast("تم تغيير الرمز ✔")}catch(e){alert("تعذر التغيير ("+(e.code||e.message)+"). اخرج وادخل من جديد ثم أعد المحاولة")}}
+function lockApp(){firebase.auth().signOut().finally(()=>location.reload())}
+// ===== الكاميرا =====
+function fileSig(i){const f=i.files[0];if(!f)return;const im=new Image();im.onload=()=>{IMG=im;$("fm").textContent="تم تحميل الصورة: اختر الآن تسجيل الوجه أو تسجيل الحضور"};im.src=URL.createObjectURL(f)}
+async function startCam(){const m=$("fm");try{if(!navigator.mediaDevices)throw{name:"NoHttps"};stopCam();stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false});const v=$("vid");v.srcObject=stream;v.setAttribute("playsinline","");await v.play();m.textContent="الكاميرا تعمل ✔"}catch(e){stream=null;m.textContent={NotAllowedError:"الكاميرا محجوبة: اسمح بها للموقع من إعدادات المتصفح",NotFoundError:"لا توجد كاميرا في هذا الجهاز",NoHttps:"افتح الموقع عبر https"}[e.name]||"تعذر فتح الكاميرا، استخدم زر التقاط صورة"}}
+function stopCam(){if(stream)stream.getTracks().forEach(t=>t.stop());stream=null}
+function sig(el){const c=$("cv");c.width=c.height=16;const x=c.getContext("2d");x.drawImage(el||$("vid"),0,0,16,16);const d=x.getImageData(0,0,16,16).data,o=[];for(let i=0;i<d.length;i+=4)o.push((d[i]+d[i+1]+d[i+2])/3);const m=o.reduce((a,b)=>a+b)/o.length;return o.map(v=>Math.round(v-m))}
+const FACE_BASE="https://huzt99.github.io/outandin/models";
+let FM=false,FL=null;
+function loadFace(){const n=()=>$("fn");if(FM){n().textContent="✅ التعرف الحقيقي على الوجه جاهز";return}if(typeof faceapi=="undefined"){n().textContent="⚠️ ملف face-api.min.js غير موجود: يعمل التعرف التقريبي";return}n().textContent="⏳ جارٍ تحميل نماذج التعرف...";
+FL=FL||Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri(FACE_BASE),faceapi.nets.faceLandmark68Net.loadFromUri(FACE_BASE),faceapi.nets.faceRecognitionNet.loadFromUri(FACE_BASE)]);
+FL.then(()=>{FM=true;if(n())n().textContent="✅ التعرف الحقيقي على الوجه جاهز"}).catch(()=>{FL=null;if(n())n().textContent="⚠️ تعذر تحميل النماذج: يعمل التعرف التقريبي"})}
+async function desc(el){if(el.tagName=="VIDEO"&&el.readyState<2)return null;const r=await faceapi.detectSingleFace(el,new faceapi.TinyFaceDetectorOptions({inputSize:320,scoreThreshold:.5})).withFaceLandmarks().withFaceDescriptor();return r?r.descriptor:null}
+async function faceEnroll(){const e=S.emps.find(x=>x.id==$("fe").value),el=stream?$("vid"):IMG,m=$("fm");if(!e||!el){m.textContent="اختر الموظف وشغّل الكاميرا أو التقط صورة أولاً";return}
+if(FM){m.textContent="⏳ جارٍ تحليل الوجه...";const d=await desc(el);if(!d){m.textContent="❌ لم يُكتشف وجه واضح، قرّب الوجه وحسّن الإضاءة";return}e.face2=Array.from(d).map(x=>+x.toFixed(4));put("emps",e);m.textContent="✅ تم تسجيل وجه "+e.name;return}
+e.face=sig(el);put("emps",e);m.textContent="تم تسجيل وجه "+e.name+" (طريقة تقريبية)"}
+async function faceVerify(){const el=stream?$("vid"):IMG,m=$("fm");if(!el){m.textContent="شغّل الكاميرا أو التقط صورة أولاً";return}let best=null,bd=1e9,ok=false;
+if(FM){m.textContent="⏳ جارٍ التعرف...";const d=await desc(el);if(!d){m.textContent="❌ لم يُكتشف وجه واضح";return}S.emps.filter(e=>e.face2).forEach(e=>{const x=faceapi.euclideanDistance(d,e.face2);if(x<bd){bd=x;best=e}});ok=best&&bd<0.5}
+else{const s=sig(el);S.emps.filter(e=>e.face).forEach(e=>{const x=e.face.reduce((a,v,i)=>a+Math.abs(v-s[i]),0)/256;if(x<bd){bd=x;best=e}});ok=best&&bd<25}
+if(ok){const k=best.id+"_"+today(),o=S.att2.find(x=>x.id==k)||{};put("att2",{id:k,eid:best.id,date:today(),st:"حاضر",in:o.in||nowT(),out:o.out||"",note:o.note||"",fv:nowT()});m.textContent="✅ تم التحقق من بصمة الوجه: "+best.name+" — سُجّل حاضراً";toast("✅ "+best.name+": تم التحقق من بصمة الوجه وسُجّل حاضراً",4000)}else m.textContent="❌ لم يتم التعرف على الوجه"}
+// ===== الإشعارات =====
+const CID=uid();let T_LOGIN=0,NSEEN=0;const NI={absent:"🚫",out:"🚪",move:"🚗",leave:"🏖️",note:"📝"};
+function notify(type,text){if(!DB)return;const r={id:uid(),ts:Date.now(),type,text,cid:CID,by:role,who:INFO[ri].n.join(" / ")};DB.collection("notif").doc(r.id).set(r).catch(()=>{})}
+function beep(){try{const c=new(window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.value=.08;o.start();o.stop(c.currentTime+.25)}catch(e){}}
+function popN(n){toast((NI[n.type]||"🔔")+" "+n.text+" — "+n.by,6000);beep();if("Notification" in window&&Notification.permission=="granted"){try{new Notification("قائمقامية قضاء السماوة",{body:n.text+" — "+n.by,tag:n.id})}catch(e){}}upBell()}
+function upBell(){const b=$("bc");if(!b)return;const c=S.notif.filter(n=>n.ts>NSEEN&&n.cid!=CID).length;b.hidden=!c;b.textContent=c}
+function openN(){NSEEN=Date.now();try{localStorage.setItem("nseen",NSEEN)}catch(e){}upBell();$("nl").innerHTML=S.notif.slice(0,50).map(n=>`<div class="ni"><span>${NI[n.type]||"🔔"}</span><div><b>${esc(n.text)}</b><small>${esc(n.by||"")} — ${esc(n.who||"")} · ${new Date(n.ts).toLocaleString("ar")}</small></div></div>`).join("")||`<p class="mu">لا توجد إشعارات بعد</p>`;$("np").hidden=false}
+const VAPID="BEqQTOb9_saWUHWggUHEyslQbUuq8eiKuQMfXy1B-xh7MmCGpc_SvpvtTWgEmA-M7Fr1Zhwdr3gSNgBuvwU5zog";
+async function enablePush(silent){try{if(!("Notification" in window)||!("serviceWorker" in navigator)||!firebase.messaging.isSupported())throw 0;
+if(Notification.permission!="granted"){if(silent)return;const p=await Notification.requestPermission();if(p!="granted"){toast("لم يتم السماح بالإشعارات");return}}
+const reg=await navigator.serviceWorker.register("firebase-messaging-sw.js");const tk=await firebase.messaging().getToken({vapidKey:VAPID,serviceWorkerRegistration:reg});if(!tk)throw 0;
+if(DB)DB.collection("tokens").doc(tk).set({id:tk,token:tk,cid:CID,ri,by:role,ts:Date.now()}).catch(()=>{});if(!silent)toast("تم تفعيل الإشعارات على هذا الجهاز ✔")}catch(e){if(!silent)toast("تعذر تفعيل إشعارات الخلفية على هذا المتصفح")}}
+function askNotif(){enablePush(false)}
+function saveGen(v){put("meta",{id:"gen",text:v});if(v.trim())notify("note",`ملاحظة عامة جديدة من ${INFO[ri].t}: ${v.slice(0,80)}`)}
+// ===== الدخول والتنقل =====
+
+$("roles").innerHTML=ROLES.map((r,i)=>`<label><input type="radio" name="r" value="${r}" ${i?"":"checked"}> ${r}</label>`).join("");
+async function login(){const i=ROLES.indexOf(document.querySelector("input[name=r]:checked").value);
+try{await firebase.auth().signInWithEmailAndPassword(KEYS[i]+"@hr.local",$("pin").value)}catch(e){$("err").textContent="الرمز غير صحيح أو تعذر الاتصال ("+(e.code||e.message)+")";return}
+ri=i;role=ROLES[i];T_LOGIN=Date.now();NSEEN=+localStorage.getItem("nseen")||T_LOGIN;$("lock").hidden=true;$("app").hidden=false;$("dt").textContent=INFO[i].t;$("dn").textContent=INFO[i].n.join(" / ");$("gen").value=genText();nav();net();enablePush(true);go("att")}
+function nav(){$("nav").innerHTML=TABS.map(t=>`<button class="tb ${t[0]==tab?"on":""}" onclick="saveWeek(1);go('${t[0]}')">${t[1]}</button>`).join("")}
+function go(t){tab=t;dirty=false;nav();stopCam();$("v").innerHTML=VIEWS[t]();if(t=="face")loadFace()}
+</script></body></html>
